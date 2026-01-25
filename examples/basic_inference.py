@@ -59,12 +59,13 @@ Example:
         help="Diffusion steps: 20=fast, 30=balanced, 50=quality",
     )
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
+    parser.add_argument("--guidance-scale", type=float, default=1.5, help="Classifier-free guidance strength")
     parser.add_argument(
         "--no-segmentation-free",
         action="store_false",
         dest="segmentation_free",
         default=True,
-        help="Disable segmentation-free mode (use human parsing masks)",
+        help="Disable segmentation-free mode. Default (enabled) preserves body features and allows unconstrained garment volume",
     )
     parser.add_argument("--device", type=str, default=None, help="Device to use (cuda/cpu)")
     args = parser.parse_args()
@@ -102,6 +103,7 @@ Example:
         garment_photo_type=args.garment_photo_type,
         num_samples=args.num_samples,
         num_timesteps=args.num_timesteps,
+        guidance_scale=args.guidance_scale,
         seed=args.seed,
         segmentation_free=args.segmentation_free,
     )

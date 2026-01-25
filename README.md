@@ -1,6 +1,22 @@
 # FASHN VTON v1.5: Efficient Maskless Virtual Try-On in Pixel Space
 
-[![Project Page](https://img.shields.io/badge/Project-Page-blue)](https://fashn.ai/research/vton-1-5) [![HuggingFace Model](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-blue)](https://huggingface.co/fashn-ai/fashn-vton-1.5) [![Paper](https://img.shields.io/badge/Paper-Coming%20Soon-lightgrey)]() [![Demo](https://img.shields.io/badge/Demo-Coming%20Soon-lightgrey)]() [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+<div align="center">
+  <a href="https://fashn.ai/research/vton-1-5">
+    <img src='https://img.shields.io/badge/Project-Page-1A1A1A?style=flat' alt='Project Page'>
+  </a>
+  <a href='https://huggingface.co/fashn-ai/fashn-vton-1.5'>
+    <img src='https://img.shields.io/badge/Hugging%20Face-Model-FFD21E?style=flat&logo=HuggingFace&logoColor=FFD21E' alt='HuggingFace'>
+  </a>
+  <a href="">
+    <img src='https://img.shields.io/badge/arXiv-Coming%20Soon-b31b1b?style=flat&logo=arXiv&logoColor=b31b1b' alt='arXiv'>
+  </a>
+  <a href="">
+    <img src='https://img.shields.io/badge/Demo-Coming%20Soon-FFD21E?style=flat&logo=HuggingFace&logoColor=FFD21E' alt='Demo'>
+  </a>
+  <a href="LICENSE">
+    <img src='https://img.shields.io/badge/License-Apache--2.0-gray?style=flat' alt='License'>
+  </a>
+</div>
 
 by [FASHN AI](https://fashn.ai)
 
@@ -14,7 +30,7 @@ This repo contains minimal inference code to run virtual try-on with the FASHN V
 
 ---
 
-## Installation
+## Local Installation
 
 We recommend using a virtual environment:
 
@@ -86,6 +102,8 @@ python examples/basic_inference.py \
 ```
 
 **Note:** The pipeline automatically uses GPU if available. The try-on model weights are stored in bfloat16 and will run in bf16 precision on Ampere+ GPUs (RTX 30xx/40xx, A100, H100). On older hardware or CPU, weights are converted to float32.
+
+See [`examples/basic_inference.py`](examples/basic_inference.py) for additional options.
 
 ---
 

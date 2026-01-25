@@ -216,7 +216,28 @@ class TryOnPipeline:
         seed: int = 42,
         segmentation_free: bool = True,
     ) -> PipelineOutput:
-        """Run inference."""
+        """
+        Run virtual try-on inference.
+
+        Args:
+            person_image: RGB image of the person to dress.
+            garment_image: RGB image of the garment (model photo or flat-lay).
+            category: Garment category - "tops", "bottoms", or "one-pieces".
+            garment_photo_type: "model" if garment is worn by a person,
+                "flat-lay" for product shots on plain backgrounds.
+            num_samples: Number of output images to generate (1-4).
+            num_timesteps: Diffusion sampling steps. Higher = better quality, slower.
+                Recommended: 20 (fast), 30 (balanced), 50 (quality).
+            guidance_scale: Classifier-free guidance strength.
+            skip_cfg_last_n_steps: Skip CFG for final N steps to prevent color saturation.
+            seed: Random seed for reproducibility.
+            segmentation_free: If True, generate without masking the person image.
+                Recommended for better body preservation and unconstrained garment volume
+                (allows garments to expand beyond the original outfit's boundaries).
+
+        Returns:
+            PipelineOutput with `images` list containing generated PIL Images.
+        """
         # Set seed
         torch.manual_seed(seed)
         if self.device.type == "cuda":
