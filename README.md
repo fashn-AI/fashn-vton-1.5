@@ -10,8 +10,8 @@
   <a href="">
     <img src='https://img.shields.io/badge/arXiv-Coming%20Soon-b31b1b?style=flat&logo=arXiv&logoColor=b31b1b' alt='arXiv'>
   </a>
-  <a href="">
-    <img src='https://img.shields.io/badge/Demo-Coming%20Soon-FFD21E?style=flat&logo=HuggingFace&logoColor=FFD21E' alt='Demo'>
+  <a href="https://huggingface.co/spaces/fashn-ai/fashn-vton-1.5">
+    <img src='https://img.shields.io/badge/Hugging%20Face-Spaces-FFD21E?style=flat&logo=HuggingFace&logoColor=FFD21E' alt='Hugging Face Spaces'>
   </a>
   <a href="LICENSE">
     <img src='https://img.shields.io/badge/License-Apache--2.0-gray?style=flat' alt='License'>
