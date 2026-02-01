@@ -1,21 +1,11 @@
 # FASHN VTON v1.5: Efficient Maskless Virtual Try-On in Pixel Space
 
 <div align="center">
-  <a href="https://fashn.ai/research/vton-1-5">
-    <img src='https://img.shields.io/badge/Project-Page-1A1A1A?style=flat' alt='Project Page'>
-  </a>
-  <a href='https://huggingface.co/fashn-ai/fashn-vton-1.5'>
-    <img src='https://img.shields.io/badge/Hugging%20Face-Model-FFD21E?style=flat&logo=HuggingFace&logoColor=FFD21E' alt='HuggingFace'>
-  </a>
-  <a href="">
-    <img src='https://img.shields.io/badge/arXiv-Coming%20Soon-b31b1b?style=flat&logo=arXiv&logoColor=b31b1b' alt='arXiv'>
-  </a>
-  <a href="https://huggingface.co/spaces/fashn-ai/fashn-vton-1.5">
-    <img src='https://img.shields.io/badge/Hugging%20Face-Spaces-FFD21E?style=flat&logo=HuggingFace&logoColor=FFD21E' alt='Hugging Face Spaces'>
-  </a>
-  <a href="LICENSE">
-    <img src='https://img.shields.io/badge/License-Apache--2.0-gray?style=flat' alt='License'>
-  </a>
+  <a href="https://fashn.ai/research/vton-1-5"><img src='https://img.shields.io/badge/Project-Page-1A1A1A?style=flat' alt='Project Page'></a>&ensp;
+  <a href='https://huggingface.co/fashn-ai/fashn-vton-1.5'><img src='https://img.shields.io/badge/Hugging%20Face-Model-FFD21E?style=flat&logo=HuggingFace&logoColor=FFD21E' alt='Hugging Face Model'></a>&ensp;
+  <a href="https://huggingface.co/spaces/fashn-ai/fashn-vton-1.5"><img src='https://img.shields.io/badge/Hugging%20Face-Spaces-FFD21E?style=flat&logo=HuggingFace&logoColor=FFD21E' alt='Hugging Face Spaces'></a>&ensp;
+  <a href=""><img src='https://img.shields.io/badge/arXiv-Coming%20Soon-b31b1b?style=flat&logo=arXiv&logoColor=b31b1b' alt='arXiv'></a>&ensp;
+  <a href="LICENSE"><img src='https://img.shields.io/badge/License-Apache--2.0-gray?style=flat' alt='License'></a>
 </div>
 
 by [FASHN AI](https://fashn.ai)
