@@ -1,6 +1,13 @@
 """Configuration for AI Personal Stylist + Virtual Fitting Room."""
 
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Load .env file from current directory
+env_path = Path(__file__).parent / ".env"
+load_dotenv(env_path)
 
 # API Keys
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -21,4 +28,7 @@ GEMINI_TEMPERATURE = 0.7
 GEMINI_MAX_TOKENS = 1024
 
 # UI Settings
-MAX_SUGGESTIONS = 4
+MAX_SUGGESTIONS = 4  # Legacy, kept for compatibility
+MAX_TOPS_SUGGESTIONS = 4
+MAX_BOTTOMS_SUGGESTIONS = 4
+MAX_FULL_SETS = 2

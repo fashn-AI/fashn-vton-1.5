@@ -59,3 +59,44 @@ Consider their:
 Provide a brief, friendly recommendation in 2-3 sentences.
 Focus on practical advice they can use when shopping.
 """
+
+OUTFIT_PAIRING_PROMPT = """As a professional fashion stylist, recommend the best outfit combinations (pairings of tops and bottoms).
+
+User Profile:
+- Body shape: {body_shape}
+- Skin tone: {skin_tone}
+- Gender: {gender}
+
+Requirements:
+- Style: {style}
+- Occasion: {occasion}
+
+Available TOPS (with index):
+{tops_list}
+
+Available BOTTOMS (with index):
+{bottoms_list}
+
+Create {num_sets} outfit sets by pairing tops with bottoms. Consider:
+1. Color coordination - complementary or harmonious colors
+2. Style consistency - pieces that work together aesthetically
+3. Occasion appropriateness - suitable for the event/setting
+4. Body flattery - combinations that enhance the user's figure
+
+Return ONLY a valid JSON object with no additional text:
+{{
+    "outfit_sets": [
+        {{
+            "top_index": 0,
+            "bottom_index": 2,
+            "reasoning": "2 sentences explaining why this combination works well for the user"
+        }},
+        {{
+            "top_index": 1,
+            "bottom_index": 0,
+            "reasoning": "2 sentences explaining why this combination works well"
+        }}
+    ],
+    "overall_styling_tips": "1-2 tips for completing these looks with accessories"
+}}
+"""

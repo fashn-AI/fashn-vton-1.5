@@ -15,7 +15,7 @@ from prompts.analyzer import (
     SEARCH_KEYWORDS_PROMPT,
     GARMENT_CLASSIFICATION_PROMPT,
 )
-from prompts.stylist import OUTFIT_SELECTION_PROMPT, STYLIST_PROMPT
+from prompts.stylist import OUTFIT_SELECTION_PROMPT, STYLIST_PROMPT, OUTFIT_PAIRING_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -144,24 +144,24 @@ class GeminiService:
 
     def generate_search_keywords(
         self,
-        user_analysis: Dict[str, Any],
+        user_profile: Dict[str, Any],
         query_analysis: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
-        Generate search keywords based on user profile and requirements.
+        Generate SEPARATE search keywords for tops and bottoms.
 
         Args:
-            user_analysis: Result from analyze_user_image
+            user_profile: User profile with gender, body_shape, skin_tone
             query_analysis: Result from analyze_query
 
         Returns:
-            Dict with keywords list, recommended_colors, reasoning
+            Dict with tops_keywords, bottoms_keywords, recommended_colors, reasoning
         """
         try:
             prompt = SEARCH_KEYWORDS_PROMPT.format(
-                body_shape=user_analysis.get("body_shape", "average"),
-                skin_tone=user_analysis.get("skin_tone", "medium"),
-                gender=user_analysis.get("gender", "neutral"),
+                body_shape=user_profile.get("body_shape", "average"),
+                skin_tone=user_profile.get("skin_tone", "medium"),
+                gender=user_profile.get("gender", "neutral"),
                 style=query_analysis.get("style", "casual"),
                 occasion=query_analysis.get("occasion", "daily"),
                 weather=query_analysis.get("weather", "not specified"),
@@ -175,30 +175,37 @@ class GeminiService:
             )
             result = self._extract_json(response.text)
 
-            if "keywords" not in result or not result["keywords"]:
-                # Generate default keywords based on inputs
-                gender = user_analysis.get("gender", "")
-                style = query_analysis.get("style", "casual")
-                occasion = query_analysis.get("occasion", "daily")
-                items = query_analysis.get("items", [])
+            # Ensure we have separate top and bottom keywords
+            gender = user_profile.get("gender", "")
+            gender_prefix = "men" if gender == "male" else ("women" if gender == "female" else "unisex")
+            style = query_analysis.get("style", "casual")
+            occasion = query_analysis.get("occasion", "daily")
 
-                default_keywords = []
-                if items:
-                    for item in items[:3]:
-                        default_keywords.append(f"{gender} {style} {item}")
-                else:
-                    default_keywords = [
-                        f"{gender} {style} outfit",
-                        f"{gender} {occasion} wear",
-                    ]
+            if "tops_keywords" not in result or not result["tops_keywords"]:
+                result["tops_keywords"] = [
+                    f"{gender_prefix} {style} shirt",
+                    f"{gender_prefix} {occasion} t-shirt",
+                    f"{gender_prefix} casual top",
+                ]
 
-                result["keywords"] = default_keywords
+            if "bottoms_keywords" not in result or not result["bottoms_keywords"]:
+                result["bottoms_keywords"] = [
+                    f"{gender_prefix} {style} pants",
+                    f"{gender_prefix} {occasion} jeans",
+                    f"{gender_prefix} casual shorts",
+                ]
+
+            # Legacy support: also provide combined keywords
+            if "keywords" not in result:
+                result["keywords"] = result["tops_keywords"] + result["bottoms_keywords"]
 
             return result
 
         except Exception as e:
             logger.error(f"Error generating search keywords: {e}")
             return {
+                "tops_keywords": ["casual shirt", "everyday t-shirt"],
+                "bottoms_keywords": ["casual pants", "everyday jeans"],
                 "keywords": ["casual outfit", "everyday wear"],
                 "recommended_colors": [],
                 "reasoning": "Default keywords due to error",
@@ -270,6 +277,94 @@ class GeminiService:
                 "selected_index": 0,
                 "explanation": "Unable to analyze options. Showing first result.",
                 "styling_tips": "Try pairing with classic accessories.",
+            }
+
+    def recommend_outfit_sets(
+        self,
+        tops: List[Dict[str, Any]],
+        bottoms: List[Dict[str, Any]],
+        user_profile: Dict[str, Any],
+        requirements: Dict[str, Any],
+        num_sets: int = 2,
+    ) -> Dict[str, Any]:
+        """
+        Recommend outfit sets by pairing tops with bottoms.
+
+        Args:
+            tops: List of top garment options with title, description
+            bottoms: List of bottom garment options with title, description
+            user_profile: User profile data
+            requirements: Style requirements from query analysis
+            num_sets: Number of outfit sets to recommend
+
+        Returns:
+            Dict with outfit_sets and overall_styling_tips
+        """
+        try:
+            # Format tops list
+            tops_text = ""
+            for i, top in enumerate(tops):
+                tops_text += f"\n{i}: {top.get('title', 'Unknown top')}"
+                if top.get("description"):
+                    tops_text += f" - {top['description'][:100]}"
+
+            # Format bottoms list
+            bottoms_text = ""
+            for i, bottom in enumerate(bottoms):
+                bottoms_text += f"\n{i}: {bottom.get('title', 'Unknown bottom')}"
+                if bottom.get("description"):
+                    bottoms_text += f" - {bottom['description'][:100]}"
+
+            prompt = OUTFIT_PAIRING_PROMPT.format(
+                body_shape=user_profile.get("body_shape", "average"),
+                skin_tone=user_profile.get("skin_tone", "medium"),
+                gender=user_profile.get("gender", "neutral"),
+                style=requirements.get("style", "casual"),
+                occasion=requirements.get("occasion", "daily"),
+                tops_list=tops_text,
+                bottoms_list=bottoms_text,
+                num_sets=num_sets,
+            )
+
+            response = self.model.generate_content(
+                [STYLIST_PROMPT, prompt],
+                generation_config=self.generation_config,
+            )
+            result = self._extract_json(response.text)
+
+            # Validate outfit_sets
+            if "outfit_sets" not in result or not result["outfit_sets"]:
+                # Create default pairings
+                result["outfit_sets"] = []
+                for i in range(min(num_sets, min(len(tops), len(bottoms)))):
+                    result["outfit_sets"].append({
+                        "top_index": i,
+                        "bottom_index": i,
+                        "reasoning": "Default pairing based on order.",
+                    })
+
+            # Validate indices
+            valid_sets = []
+            for outfit in result["outfit_sets"]:
+                top_idx = outfit.get("top_index", 0)
+                bottom_idx = outfit.get("bottom_index", 0)
+                if 0 <= top_idx < len(tops) and 0 <= bottom_idx < len(bottoms):
+                    valid_sets.append(outfit)
+
+            result["outfit_sets"] = valid_sets[:num_sets]
+
+            if "overall_styling_tips" not in result:
+                result["overall_styling_tips"] = "Complete the look with matching accessories."
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Error recommending outfit sets: {e}")
+            return {
+                "outfit_sets": [
+                    {"top_index": 0, "bottom_index": 0, "reasoning": "Default pairing."}
+                ],
+                "overall_styling_tips": "Try neutral accessories to complete the look.",
             }
 
     def classify_garment(self, image: Image.Image) -> Dict[str, Any]:

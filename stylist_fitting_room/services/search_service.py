@@ -136,6 +136,64 @@ class SearchService:
 
         return all_results
 
+    def search_tops(
+        self,
+        keywords: List[str],
+        results_per_keyword: int = 5,
+    ) -> List[Dict[str, Any]]:
+        """
+        Search specifically for tops/shirts.
+
+        Args:
+            keywords: List of keyword combinations for tops
+            results_per_keyword: Number of results per keyword
+
+        Returns:
+            List of top garment results
+        """
+        # Enhance keywords with top-specific terms if not already present
+        top_terms = ["shirt", "t-shirt", "blouse", "top", "jacket", "sweater"]
+        enhanced_keywords = []
+
+        for kw in keywords:
+            kw_lower = kw.lower()
+            has_top_term = any(term in kw_lower for term in top_terms)
+            if not has_top_term:
+                enhanced_keywords.append(f"{kw} shirt top")
+            else:
+                enhanced_keywords.append(kw)
+
+        return self.search_with_multiple_keywords(enhanced_keywords, results_per_keyword)
+
+    def search_bottoms(
+        self,
+        keywords: List[str],
+        results_per_keyword: int = 5,
+    ) -> List[Dict[str, Any]]:
+        """
+        Search specifically for bottoms/pants.
+
+        Args:
+            keywords: List of keyword combinations for bottoms
+            results_per_keyword: Number of results per keyword
+
+        Returns:
+            List of bottom garment results
+        """
+        # Enhance keywords with bottom-specific terms if not already present
+        bottom_terms = ["pants", "jeans", "shorts", "skirt", "trousers", "slacks"]
+        enhanced_keywords = []
+
+        for kw in keywords:
+            kw_lower = kw.lower()
+            has_bottom_term = any(term in kw_lower for term in bottom_terms)
+            if not has_bottom_term:
+                enhanced_keywords.append(f"{kw} pants shorts")
+            else:
+                enhanced_keywords.append(kw)
+
+        return self.search_with_multiple_keywords(enhanced_keywords, results_per_keyword)
+
     def download_garment_image(self, url: str) -> Optional[Image.Image]:
         """
         Download a garment image from URL.

@@ -41,7 +41,7 @@ Return ONLY a valid JSON object with no additional text:
 }
 """
 
-SEARCH_KEYWORDS_PROMPT = """Based on the user profile and their fashion request, generate optimal search keywords for finding clothes online.
+SEARCH_KEYWORDS_PROMPT = """Based on the user profile and their fashion request, generate SEPARATE search keywords for TOPS and BOTTOMS.
 
 User Profile:
 - Body shape: {body_shape}
@@ -55,20 +55,32 @@ Fashion Request:
 - Specific items: {items}
 - Color preferences: {colors}
 
-Generate 3-5 search keyword combinations that would find the best matching garments.
-Consider colors that complement the user's skin tone.
-Consider styles that flatter the user's body shape.
+Generate SEPARATE keyword combinations for:
+1. TOPS (shirts, t-shirts, blouses, sweaters, jackets, etc.) - 3-4 keywords
+2. BOTTOMS (pants, jeans, shorts, skirts, etc.) - 3-4 keywords
+
+IMPORTANT:
+- Each keyword MUST include the gender prefix (e.g., "men", "women")
+- Each keyword for TOPS must include a top-specific term (shirt, t-shirt, blouse, jacket, etc.)
+- Each keyword for BOTTOMS must include a bottom-specific term (pants, jeans, shorts, skirt, etc.)
+- Consider colors that complement the user's skin tone
+- Consider styles that flatter the user's body shape
 
 Return ONLY a valid JSON object with no additional text:
-{
-    "keywords": [
-        "keyword combination 1",
-        "keyword combination 2",
+{{
+    "tops_keywords": [
+        "men casual linen shirt summer",
+        "men beach shirt lightweight",
+        ...
+    ],
+    "bottoms_keywords": [
+        "men khaki shorts casual",
+        "men beach shorts swim",
         ...
     ],
     "recommended_colors": ["color1", "color2"],
     "reasoning": "brief explanation of why these keywords were chosen"
-}
+}}
 """
 
 GARMENT_CLASSIFICATION_PROMPT = """Analyze this garment image and classify it.

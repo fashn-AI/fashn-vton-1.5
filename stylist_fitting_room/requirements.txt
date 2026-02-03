@@ -1,5 +1,8 @@
 # AI Personal Stylist + Virtual Fitting Room Dependencies
 
+# Environment
+python-dotenv>=1.0.0
+
 # UI Framework
 gradio>=4.0.0
 
