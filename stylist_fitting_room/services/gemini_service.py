@@ -22,19 +22,15 @@ class UserAnalysisResponse(BaseModel):
     """Response schema for user image analysis."""
 
     body_shape: str = Field(
-        default="average",
         description="Body shape: slim/average/athletic/curvy/plus-size",
     )
     skin_tone: str = Field(
-        default="medium",
         description="Skin tone: fair/light/medium/olive/tan/dark",
     )
     gender: str = Field(
-        default="neutral",
         description="Gender presentation: male/female/neutral",
     )
     current_style: str = Field(
-        default="casual",
         description="Current style observed: casual/formal/sporty/etc.",
     )
 
@@ -43,27 +39,21 @@ class QueryAnalysisResponse(BaseModel):
     """Response schema for query analysis."""
 
     style: str = Field(
-        default="casual",
         description="Style: casual/formal/vintage/streetwear/minimalist/athletic/beach/other",
     )
     occasion: str = Field(
-        default="daily",
         description="Occasion: work/party/date/travel/daily/wedding/beach/other",
     )
     weather: str = Field(
-        default="not specified",
         description="Weather: hot/cold/mild/not specified",
     )
     items: List[str] = Field(
-        default_factory=list,
         description="Specific items mentioned (e.g., dress, jeans, blazer)",
     )
     colors: List[str] = Field(
-        default_factory=list,
         description="Colors mentioned or preferred",
     )
     budget: str = Field(
-        default="not specified",
         description="Budget: low/medium/high/not specified",
     )
 
@@ -72,19 +62,15 @@ class SearchKeywordsResponse(BaseModel):
     """Response schema for search keywords generation."""
 
     tops_keywords: List[str] = Field(
-        default_factory=list,
         description="2-3 search keywords for tops/shirts/blouses",
     )
     bottoms_keywords: List[str] = Field(
-        default_factory=list,
         description="2-3 search keywords for bottoms/pants/skirts",
     )
     recommended_colors: List[str] = Field(
-        default_factory=list,
         description="Recommended colors based on user profile",
     )
     reasoning: str = Field(
-        default="",
         description="Brief explanation of keyword choices",
     )
 
@@ -93,15 +79,12 @@ class OutfitSelectionResponse(BaseModel):
     """Response schema for outfit selection."""
 
     selected_index: int = Field(
-        default=0,
         description="Index of the selected outfit from candidates (0-based)",
     )
     explanation: str = Field(
-        default="",
         description="Why this outfit was selected",
     )
     styling_tips: str = Field(
-        default="",
         description="Tips for styling this outfit",
     )
 
@@ -112,7 +95,6 @@ class OutfitSetItem(BaseModel):
     top_index: int = Field(description="Index of the top garment (0-based)")
     bottom_index: int = Field(description="Index of the bottom garment (0-based)")
     reasoning: str = Field(
-        default="",
         description="Why this pairing works well together",
     )
 
@@ -121,11 +103,9 @@ class OutfitSetsResponse(BaseModel):
     """Response schema for outfit set recommendations."""
 
     outfit_sets: List[OutfitSetItem] = Field(
-        default_factory=list,
         description="List of recommended outfit pairings",
     )
     overall_styling_tips: str = Field(
-        default="",
         description="General styling tips for all outfits",
     )
 
@@ -134,15 +114,12 @@ class GarmentClassificationResponse(BaseModel):
     """Response schema for garment classification."""
 
     category: str = Field(
-        default="tops",
         description="Garment category: tops/bottoms/one-pieces",
     )
     photo_type: str = Field(
-        default="model",
         description="Photo type: model/flat-lay",
     )
     description: str = Field(
-        default="",
         description="Brief description of the garment",
     )
 
@@ -216,6 +193,29 @@ class GeminiService:
             max_output_tokens=GEMINI_MAX_TOKENS,
         )
 
+    def _apply_defaults(self, result: Dict[str, Any], defaults: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Apply default values to missing or empty fields.
+
+        Gemini's response_schema does NOT support Pydantic's default/default_factory,
+        so we must apply defaults manually after parsing the response.
+
+        Args:
+            result: Parsed response dict from Gemini
+            defaults: Dict mapping field names to default values
+
+        Returns:
+            Result dict with defaults applied for missing/empty fields
+        """
+        for key, default_value in defaults.items():
+            if key not in result or result[key] is None:
+                result[key] = default_value
+            elif isinstance(result[key], str) and not result[key]:
+                result[key] = default_value
+            elif isinstance(result[key], list) and not result[key]:
+                result[key] = default_value
+        return result
+
     def _extract_json(self, text: str) -> Dict[str, Any]:
         """Extract JSON from model response, handling markdown code blocks (legacy fallback)."""
         # Remove markdown code blocks if present
@@ -242,18 +242,23 @@ class GeminiService:
         Returns:
             Dict with body_shape, skin_tone, gender, current_style
         """
+        defaults = {
+            "body_shape": "average",
+            "skin_tone": "medium",
+            "gender": "neutral",
+            "current_style": "casual",
+        }
         try:
             response = self.model.generate_content(
                 [USER_ANALYSIS_PROMPT, image],
                 generation_config=self._get_structured_config(UserAnalysisResponse),
             )
-            # Parse with Pydantic for guaranteed valid structure
-            result = UserAnalysisResponse.model_validate_json(response.text)
-            return result.model_dump()
+            result = json.loads(response.text)
+            return self._apply_defaults(result, defaults)
 
         except Exception as e:
             logger.error(f"Error analyzing user image: {e}")
-            return UserAnalysisResponse().model_dump()
+            return defaults
 
     def analyze_query(self, query: str) -> Dict[str, Any]:
         """
@@ -265,19 +270,26 @@ class GeminiService:
         Returns:
             Dict with style, occasion, weather, items, colors, budget
         """
+        defaults = {
+            "style": "casual",
+            "occasion": "daily",
+            "weather": "not specified",
+            "items": [],
+            "colors": [],
+            "budget": "not specified",
+        }
         try:
             prompt = QUERY_ANALYSIS_PROMPT.format(query=query)
             response = self.model.generate_content(
                 prompt,
                 generation_config=self._get_structured_config(QueryAnalysisResponse),
             )
-            # Parse with Pydantic for guaranteed valid structure
-            result = QueryAnalysisResponse.model_validate_json(response.text)
-            return result.model_dump()
+            result = json.loads(response.text)
+            return self._apply_defaults(result, defaults)
 
         except Exception as e:
             logger.error(f"Error analyzing query: {e}")
-            return QueryAnalysisResponse().model_dump()
+            return defaults
 
     def generate_search_keywords(
         self,
@@ -310,9 +322,15 @@ class GeminiService:
                 prompt,
                 generation_config=self._get_structured_config(SearchKeywordsResponse),
             )
-            # Parse with Pydantic for guaranteed valid structure
-            parsed = SearchKeywordsResponse.model_validate_json(response.text)
-            result = parsed.model_dump()
+            result = json.loads(response.text)
+            # Apply defaults for empty fields
+            search_defaults = {
+                "tops_keywords": [],
+                "bottoms_keywords": [],
+                "recommended_colors": [],
+                "reasoning": "",
+            }
+            result = self._apply_defaults(result, search_defaults)
 
             # Ensure we have separate top and bottom keywords (fallback if empty)
             gender = user_profile.get("gender", "")
@@ -393,29 +411,29 @@ class GeminiService:
                 [STYLIST_PROMPT, prompt],
                 generation_config=self._get_structured_config(OutfitSelectionResponse),
             )
-            # Parse with Pydantic for guaranteed valid structure
-            parsed = OutfitSelectionResponse.model_validate_json(response.text)
-            result = parsed.model_dump()
+            result = json.loads(response.text)
+
+            # Apply defaults
+            selection_defaults = {
+                "selected_index": 0,
+                "explanation": "This option best matches your style preferences.",
+                "styling_tips": "Complete the look with neutral accessories.",
+            }
+            result = self._apply_defaults(result, selection_defaults)
 
             # Validate selected_index is within bounds
             if result["selected_index"] >= len(candidates):
                 result["selected_index"] = 0
 
-            # Provide defaults for empty strings
-            if not result["explanation"]:
-                result["explanation"] = "This option best matches your style preferences."
-
-            if not result["styling_tips"]:
-                result["styling_tips"] = "Complete the look with neutral accessories."
-
             return result
 
         except Exception as e:
             logger.error(f"Error selecting outfit: {e}")
-            return OutfitSelectionResponse(
-                explanation="Unable to analyze options. Showing first result.",
-                styling_tips="Try pairing with classic accessories.",
-            ).model_dump()
+            return {
+                "selected_index": 0,
+                "explanation": "Unable to analyze options. Showing first result.",
+                "styling_tips": "Try pairing with classic accessories.",
+            }
 
     def recommend_outfit_sets(
         self,
@@ -468,19 +486,28 @@ class GeminiService:
                 [STYLIST_PROMPT, prompt],
                 generation_config=self._get_structured_config(OutfitSetsResponse),
             )
-            # Parse with Pydantic for guaranteed valid structure
-            parsed = OutfitSetsResponse.model_validate_json(response.text)
-            result = parsed.model_dump()
+            result = json.loads(response.text)
+
+            # Apply defaults
+            outfit_sets_defaults = {
+                "outfit_sets": [],
+                "overall_styling_tips": "Complete the look with matching accessories.",
+            }
+            result = self._apply_defaults(result, outfit_sets_defaults)
 
             # Validate outfit_sets (create defaults if empty)
             if not result["outfit_sets"]:
-                result["outfit_sets"] = []
                 for i in range(min(num_sets, min(len(tops), len(bottoms)))):
                     result["outfit_sets"].append({
                         "top_index": i,
                         "bottom_index": i,
                         "reasoning": "Default pairing based on order.",
                     })
+
+            # Apply defaults to each outfit item
+            outfit_item_defaults = {"reasoning": ""}
+            for outfit in result["outfit_sets"]:
+                self._apply_defaults(outfit, outfit_item_defaults)
 
             # Validate indices and filter invalid ones
             valid_sets = []
@@ -492,18 +519,14 @@ class GeminiService:
 
             result["outfit_sets"] = valid_sets[:num_sets]
 
-            # Provide default if empty
-            if not result["overall_styling_tips"]:
-                result["overall_styling_tips"] = "Complete the look with matching accessories."
-
             return result
 
         except Exception as e:
             logger.error(f"Error recommending outfit sets: {e}")
-            return OutfitSetsResponse(
-                outfit_sets=[OutfitSetItem(top_index=0, bottom_index=0, reasoning="Default pairing.")],
-                overall_styling_tips="Try neutral accessories to complete the look.",
-            ).model_dump()
+            return {
+                "outfit_sets": [{"top_index": 0, "bottom_index": 0, "reasoning": "Default pairing."}],
+                "overall_styling_tips": "Try neutral accessories to complete the look.",
+            }
 
     def classify_garment(self, image: Image.Image) -> Dict[str, Any]:
         """
@@ -515,14 +538,18 @@ class GeminiService:
         Returns:
             Dict with category (tops/bottoms/one-pieces), photo_type (model/flat-lay)
         """
+        defaults = {
+            "category": "tops",
+            "photo_type": "model",
+            "description": "",
+        }
         try:
             response = self.model.generate_content(
                 [GARMENT_CLASSIFICATION_PROMPT, image],
                 generation_config=self._get_structured_config(GarmentClassificationResponse),
             )
-            # Parse with Pydantic for guaranteed valid structure
-            parsed = GarmentClassificationResponse.model_validate_json(response.text)
-            result = parsed.model_dump()
+            result = json.loads(response.text)
+            result = self._apply_defaults(result, defaults)
 
             # Validate category (ensure it's one of the valid values)
             valid_categories = ["tops", "bottoms", "one-pieces"]
@@ -538,6 +565,5 @@ class GeminiService:
 
         except Exception as e:
             logger.error(f"Error classifying garment: {e}")
-            return GarmentClassificationResponse(
-                description="Unable to classify garment"
-            ).model_dump()
+            defaults["description"] = "Unable to classify garment"
+            return defaults
