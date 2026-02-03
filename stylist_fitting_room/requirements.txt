@@ -1,0 +1,19 @@
+# AI Personal Stylist + Virtual Fitting Room Dependencies
+
+# UI Framework
+gradio>=4.0.0
+
+# Gemini API
+google-generativeai>=0.3.0
+
+# Tavily Search
+tavily-python>=0.3.0
+
+# Image Processing
+pillow>=9.0.0
+requests>=2.28.0
+
+# Note: FASHN VTON dependencies (torch, torchvision, etc.)
+# are expected to be installed from the parent project.
+# Run from parent directory:
+#   pip install -e .
