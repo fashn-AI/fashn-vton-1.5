@@ -25,7 +25,7 @@ SEARCH_INCLUDE_IMAGES = True
 # Gemini Settings
 GEMINI_MODEL = "gemini-2.0-flash"
 GEMINI_TEMPERATURE = 0.7
-GEMINI_MAX_TOKENS = 1024
+GEMINI_MAX_TOKENS = 2048
 
 # UI Settings
 MAX_SUGGESTIONS = 4  # Legacy, kept for compatibility
