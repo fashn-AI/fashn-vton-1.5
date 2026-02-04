@@ -35,7 +35,7 @@ dependencies = [
     "opencv-python>=4.5.0",
     "tqdm>=4.65.0",
     "einops>=0.6.0",
-    "onnxruntime>=1.14.0",
+    "onnxruntime-gpu>=1.14.0",
     "matplotlib>=3.5.0",
     "fashn-human-parser>=0.1.1",
 ]
